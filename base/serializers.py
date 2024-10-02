@@ -4,7 +4,7 @@ from rest_framework.serializers import ModelSerializer
 class BotUserSerializers(ModelSerializer):
     class Meta:
         model = BotUser
-        fields = ("name", "username", "user_id", "crated_at")
+        fields = ("name", "username", "user_id", "created_at")
 
 
 class FeedbackSerialer(ModelSerializer):
