@@ -3,6 +3,7 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 import asyncio
 from buttons import button
+from api import create_user, create_feedback
 
 API_TOKEN = '6881014528:AAHxuHUw-eQoheEIVgRcA7G9o0IJlJaXWrY'
 
@@ -20,6 +21,7 @@ async def send_welcome(message: types.Message):
     This handler will be called when the user sends `/start` or `/help` command.
     """
     await message.reply("Assalomu alaykum!\nDjango-aiogram botimizga xush kelibsiz!", reply_markup=button)
+    create_user(message.from_user.username, message.from_user.first_name, message.from_user.id)
 
 # Echo handler
 @dp.message()
