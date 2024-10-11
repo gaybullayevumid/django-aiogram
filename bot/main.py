@@ -9,56 +9,60 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.context import FSMContext
 from aiogram import Router
 
-API_TOKEN = '6881014528:AAHxuHUw-eQoheEIVgRcA7G9o0IJlJaXWrY'
+API_TOKEN = '6881014528:AAHxuHUw-eQoheEIVgRcA7G9o0IJlJaXWrY'  # Bot tokeni
 
-# Configure logging
+
+# Log yozuvlarini sozlash
 logging.basicConfig(level=logging.INFO)
 
-# Initialize bot and dispatcher
+# Bot va dispatcher'ni ishga tushirish
 bot = Bot(token=API_TOKEN)
-storage = MemoryStorage()  # Initialize storage
+storage = MemoryStorage()  # Xotira saqlash tizimini ishga tushirish
 dp = Dispatcher(storage=storage)
 
-# Create a router object for message handlers
+# Router obyektini yaratish (xabarlarni boshqarish uchun)
 router = Router()
 
-# Handler for /start and /help commands
+
+# /start va /help komandalarini qabul qiluvchi handler
 @router.message(Command(commands=['start', 'help']))
 async def send_welcome(message: types.Message):
     """
-    This handler will be called when the user sends `/start` or `/help` command.
+    Ushbu handler foydalanuvchi /start yoki /help komandalarini yuborganida ishlaydi.
     """
-    await message.reply("Assalomu alaykum!\nDjango-aiogram botimizga xush kelibsiz!", reply_markup=button)
+    await message.reply("Assalomu alaykum!\nIT Park Feedback botimizga xush kelibsiz!", reply_markup=button)
     create_user(message.from_user.username, message.from_user.first_name, message.from_user.id)
 
-# Handler for feedback initiation
-@router.message(lambda msg: msg.text and msg.text.startswith("Talab va Takliflar"))
-async def feedback_1(message: types.Message):
-    await message.answer("Xabar matnini yuboring.")
-    # Set the state using FSMContext
-    fsm_context = FSMContext(storage=message.bot.get('storage'), key=message.from_user.id)
-    await fsm_context.set_state(FeedbackState.body)
 
-# Handler for feedback submission (when in FeedbackState.body)
+# Foydalanuvchining talab va takliflarini qabul qilishni boshlash
+@router.message(lambda msg: msg.text and msg.text.startswith("Talab va Takliflar"))
+async def feedback_1(message: types.Message, state: FSMContext):
+    await message.answer("Xabar matnini yuboring.")
+    # Foydalanuvchining holatini o'rnatish
+    await state.set_state(FeedbackState.body)
+
+
+# Foydalanuvchining xabarini qabul qilish va uni saqlash (FeedbackState.body holatida)
 @router.message()
-async def feedback_2(message: types.Message):
-    # Check the state using FSMContext
-    fsm_context = FSMContext(storage=message.bot.get('storage'), key=message.from_user.id)
-    state = await fsm_context.get_state()
-    
-    if state == FeedbackState.body:
+async def feedback_2(message: types.Message, state: FSMContext):
+    # Foydalanuvchining joriy holatini tekshirish
+    current_state = await state.get_state()
+
+    if current_state == FeedbackState.body:
         await message.answer(create_feedback(message.from_user.id, message.text))
-        await fsm_context.clear()  # Clear the state after completion
+        await state.clear()  # Holatni tozalash
     else:
         await message.answer(message.text)
 
-# Main function to start polling
+
+# Botni ishga tushirish uchun asosiy funksiya
 async def main():
-    # Register the router with the dispatcher
+    # Routerni dispatcher bilan ro‘yxatdan o‘tkazish
     dp.include_router(router)
 
-    # Start polling
+    # Pollingni boshlash
     await dp.start_polling(bot)
+
 
 if __name__ == '__main__':
     asyncio.run(main())
